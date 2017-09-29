@@ -12,7 +12,7 @@ newFreqLD <-function(Resp, Block)
   ## Bind to get levels
   leftLevs <- rightLevs <- apply(combs, 1, paste, collapse = "")
 
-  perms <- permutations(2^(nSNP), 2^(nSNP))
+  perms <- gtools::permutations(2^(nSNP), 2^(nSNP))
 
   rightMat <- matrix(rightLevs[perms], ncol = 2^nSNP)
   leftMat <- matrix(leftLevs, nrow = nrow(rightMat), ncol = ncol(rightMat), byrow = TRUE)
