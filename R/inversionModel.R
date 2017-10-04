@@ -1,5 +1,5 @@
 #' @export
-inversionModel <- function(dat, maxSteps = 1000, runs = 1, prob0 = 0.9) {
+inversionModel <- function(dat, maxSteps = 1000, runs = 1, prob0 = 0.5) {
   #reduce data to haplotype frequencies for block b1b2 and b3b4
   inds <- apply(dat, 1, paste, collapse = "+")
   r1 <- rep(1, length(inds))
