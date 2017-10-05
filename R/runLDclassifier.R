@@ -27,7 +27,7 @@ runLDclassifier <- function(haplos, annot, blockSize = 2, mc.cores = 1){
     ))
     res$annot <- c(start = GenomicRanges::start(GRblocks[bl1]),
                    end = GenomicRanges::start(GRblocks[bl2]))
-    if (res$bic < 50) {
+    if (res$bic < 10 | res$pval < 0.05) {
       res$r1 <- NULL
     }
     res
