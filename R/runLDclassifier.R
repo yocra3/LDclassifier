@@ -21,10 +21,13 @@ runLDclassifier <- function(haplos, annot, blockSize = 2, mc.cores = 1){
     bl2 <- S4Vectors::to(overlaps)[ind]
     ind1 <- GRblocks$Ind[[bl1]]
     ind2 <- GRblocks$Ind[[bl2]]
-    res <- inversionModel(cbind(
+    res <- tryCatch(inversionModel(cbind(
       apply(haplos[, ind1], 1, function(x) paste(x, collapse = "")),
       apply(haplos[, ind2], 1, function(x) paste(x, collapse = ""))
-    ))
+    )), error = function(e) NULL)
+    if (is.null(res)){
+      return(list())
+    }
     res$annot <- c(start = GenomicRanges::start(GRblocks[bl1]),
                    end = GenomicRanges::start(GRblocks[bl2]))
     if (res$bic < 10 | res$pval < 0.05) {
