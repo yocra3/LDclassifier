@@ -3,7 +3,7 @@
 #' @param haplos Matrix with the haplotypes (SNPs in rows, samples in columns)
 #' @param annot GenomicRanges
 #' @param blockSize Numeric with the size of the SNP block
-runLDclassifier <- function(haplos, annot, blockSize = 2, mc.cores = 1){
+runLDclassifier <- function(haplos, annot, blockSize = 2, BPPARAM = BiocParallel::MulticoreParam(1, progressbar = TRUE)){
 
   # Make list of SNP pairs to test
   GRblocks <- GenomicRanges::GRanges(
@@ -16,7 +16,7 @@ runLDclassifier <- function(haplos, annot, blockSize = 2, mc.cores = 1){
   autoOverlaps <- GenomicRanges::findOverlaps(GRblocks)
   overlaps <- overlaps[!S4Vectors::`%in%`(overlaps, autoOverlaps)]
 
-  models <- parallel::mclapply(seq_len(length(overlaps)), function(ind){
+  models <- BiocParallel::bplapply(seq_len(length(overlaps)), function(ind){
     bl1 <- S4Vectors::from(overlaps)[ind]
     bl2 <- S4Vectors::to(overlaps)[ind]
     ind1 <- GRblocks$Ind[[bl1]]
@@ -34,6 +34,6 @@ runLDclassifier <- function(haplos, annot, blockSize = 2, mc.cores = 1){
       res$r1 <- NULL
     }
     res
-  }, mc.cores = mc.cores)
+  }, BPPARAM = BPPARAM)
   models
 }
