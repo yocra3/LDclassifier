@@ -41,7 +41,7 @@ newFreqLD <-function(Resp, Block)
   namesVec <- paste(namesVec[, 1], namesVec[, 2], sep = "+")
 
   res <- c(res, rep(0, length(namesVec) - length(props)))
-  res[res < 1e-3] <- 1e-3
+  res[res < 1e-5] <- 1e-5
   res <- res/sum(res)
   names(res)[(length(props) +1):length(res)] <-
     namesVec[!namesVec %in% names(res)]
