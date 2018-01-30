@@ -1,5 +1,5 @@
 
-newFreqLD <-function(Resp, Block)
+newFreqLD <- function(Resp, Block)
 {
   nSNP <- (nchar(Block[1]) - 1)/2
 
@@ -12,14 +12,26 @@ newFreqLD <-function(Resp, Block)
   ## Bind to get levels
   leftLevs <- rightLevs <- apply(combs, 1, paste, collapse = "")
 
-  perms <- gtools::permutations(2^(nSNP), 2^(nSNP))
-
-  rightMat <- matrix(rightLevs[perms], ncol = 2^nSNP)
-  leftMat <- matrix(leftLevs, nrow = nrow(rightMat), ncol = ncol(rightMat), byrow = TRUE)
-  permsmat <- matrix(paste(leftMat, rightMat, sep = "+"), ncol = ncol(rightMat))
   ## Find combination containing more samples
-  permsSum <- apply(permsmat, 1, function(x) sum(freqs[x], na.rm = TRUE))
-  selAlleles <- permsmat[which.max(permsSum), ]
+  sfreqs <- sort(freqs, decreasing = TRUE)
+  leftLevsvec <- rightLevsvec <- leftLevs
+  selAlleles <- character()
+  while(length(sfreqs) > 0 & length(leftLevsvec) > 0){
+    allele <- names(sfreqs)[1]
+    leftp <- strsplit(allele, "+", fixed = TRUE)[[1]][1]
+    rigthp <- strsplit(allele, "+", fixed = TRUE)[[1]][2]
+    if (leftp %in% leftLevsvec & rigthp %in% rightLevsvec){
+      selAlleles <- c(selAlleles, allele)
+      leftLevsvec <- leftLevsvec[leftLevsvec != leftp]
+      rightLevsvec <- rightLevsvec[rightLevsvec != rigthp]
+    }
+    sfreqs <- sfreqs[-1]
+  }
+
+  if (length(leftLevsvec) > 0){
+    selAlleles <- c(selAlleles, paste(leftLevsvec,rightLevsvec, sep = "+" ))
+  }
+
   props <- freqs[selAlleles]
   props[is.na(props)] <- 0
   names(props)[is.na(names(props))] <- selAlleles[!selAlleles %in% names(props)]
