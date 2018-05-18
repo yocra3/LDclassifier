@@ -1,4 +1,9 @@
-
+#' Update model parameters
+#'
+#' @param params List with current parameter values
+#' @param funcProps1 Function used to update block frequencies for population 1
+#' @param funcProps2 Function used to update block frequencies for population 2
+#' @return List with the updated frequencies
 updateModel <- function(params, funcProps1, funcProps2){
 
   newparams <- params

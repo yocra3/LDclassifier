@@ -1,5 +1,21 @@
-#' @export
-inversionModel <- function(dat, maxSteps = 1000, runs = 1, prob0 = 0.5) {
+#' Run LDmixture model to a pair of SNP-blocks
+#'
+#' @param dat Matrix with the genotype data
+#' @param maxSteps Numerical with the maximum number of iterations run by the EM algorithm
+#' @param prob0 Initial mixture probability.
+#' @return A list with the LDmixture results
+#' \itemize{
+#'  \item{"logMix"}{Log-likelihood of mixture model}
+#'  \item{"logLD"}{Log-likelihood of linkage model}
+#'  \item{"logNoLD"}{Log-likelihood of recomb model}
+#'  \item{"BIC"}{BIC of the mixture vs the base model}
+#'  \item{"prob"}{Proportion of chromosomes belonging to recomb model}
+#'  \item{"steps"}{Number of iterations until converge of the EM algorithm}
+#'  \item{"pval"}{P-value of the Chi-square test}
+#'  \item{"r1"}{Responsibilities for recomb population of each chromosomes. It is
+#'  only available for selected models (BIC > 10, pval > 0.05)}
+#' }
+inversionModel <- function(dat, maxSteps = 1000, prob0 = 0.5) {
   #reduce data to haplotype frequencies for block b1b2 and b3b4
   inds <- apply(dat, 1, paste, collapse = "+")
   r1 <- rep(1, length(inds))
@@ -59,7 +75,7 @@ inversionModel <- function(dat, maxSteps = 1000, runs = 1, prob0 = 0.5) {
   datProps[is.na(datProps)] <- 0
   names(datProps) <- names(modelProps)
 
-  chp.val <- chisq.test(datProps, p = modelProps)$p.value
+  chp.val <- stats::chisq.test(datProps, p = modelProps)$p.value
 
 
   ans <- list(logMix = LoglikeMix, logLD = LoglikeLD,

@@ -1,36 +1,37 @@
+#' Main function to run all the LDclassifier pipeline
+#'
+#' This function takes as input phased chromosomes and returns the responsibilities
+#' PCA and the cluster classification of the samples.
+#'
 #' @export
 #'
 #' @param haplos Matrix with the haplotypes (SNPs in rows, samples in columns)
-#' @param annot GenomicRanges
-#' @param blockSize Numeric with the size of the SNP block
-runLDclassifier <- function(haplos, annot, blockSize = 2, BPPARAM = BiocParallel::MulticoreParam(1, progressbar = TRUE)){
+#' @param annot GenomicRanges with the SNPs annotation
+#' @param clusters Numeric with the clusters used in k-means
+#' @param PCs Numeric with the number of PCA components used to make the clustering.
+#' @param ... Further arguments passed to runLDmixtureModel
+#' @return A list with two elements:
+#' \itemize{
+#'  \item{"class"}{Cluster classification of the chromosomes}
+#'  \item{"pc"}{Responsibilities PCA}
+#' }
+runLDclassifier <- function(haplos, annot, clusters = 2, PCs = 1, ...){
+  # Get models
+  models <- runLDmixtureModel(haplos, annot, ...)
 
-  # Make list of SNP pairs to test
-  GRblocks <- GenomicRanges::GRanges(
-    paste0(GenomicRanges::seqnames(annot)[1], ":",
-           GenomicRanges::start(annot)[1:(length(annot) - blockSize + 1)], "-",
-           GenomicRanges::end(annot)[blockSize:(length(annot))]))
-  GRblocks$Ind <- lapply(1:(length(annot) - blockSize + 1),
-                         function(x) seq(x, x + blockSize -1, 1))
-  overlaps <- GenomicRanges::findOverlaps(GenomicRanges::resize(GRblocks, 1e5), GRblocks)
-  autoOverlaps <- GenomicRanges::findOverlaps(GRblocks)
-  overlaps <- overlaps[!S4Vectors::`%in%`(overlaps, autoOverlaps)]
 
-  models <- BiocParallel::bplapply(seq_len(length(overlaps)), function(ind){
-    bl1 <- S4Vectors::from(overlaps)[ind]
-    bl2 <- S4Vectors::to(overlaps)[ind]
-    ind1 <- GRblocks$Ind[[bl1]]
-    ind2 <- GRblocks$Ind[[bl2]]
-    res <- inversionModel(cbind(
-      apply(haplos[, ind1], 1, function(x) paste(x, collapse = "")),
-      apply(haplos[, ind2], 1, function(x) paste(x, collapse = ""))
-    ))
-    res$annot <- c(start = GenomicRanges::start(GRblocks[bl1]),
-                   end = GenomicRanges::start(GRblocks[bl2]))
-    if (res$bic < 10 | res$pval < 0.05) {
-      res$r1 <- NULL
-    }
-    res
-  }, BPPARAM = BPPARAM)
-  models
+  ## Remove failed models
+  goodModels <- vapply(models, class, character(1)) == "list"
+  ## Create matrix of chromosome responsibilities
+  indsmat <- do.call(cbind, lapply(models[goodModels], `[[`, "r1"))
+
+  ## Run PCA on individuals responsibilities
+  pc <- stats::prcomp(indsmat)
+
+  ## Get classification with k-means
+  class <- stats::kmeans(pc$x[, seq_len(PCs)], centers = clusters, nstart = 1000)$cluster
+  names(class) <- colnames(haplos)
+
+  ## TO DO: create an object to encapsulate results
+  return(list(class = class, pc = pc))
 }
