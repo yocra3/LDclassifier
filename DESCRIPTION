@@ -1,4 +1,4 @@
-Package: LDclassifier
+Package: RecombClust
 Title: Group chromosomes by recombination history
 Version: 0.99.4
 Authors@R: c(person("Carlos", "Ruiz-Arenas", , "carlos.ruiz@isglobal.org", role = c("aut", "cre")),

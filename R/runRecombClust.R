@@ -15,7 +15,7 @@
 #'  \item{"class"}{Cluster classification of the chromosomes}
 #'  \item{"pc"}{Responsibilities PCA}
 #' }
-runLDclassifier <- function(haplos, annot, clusters = 2, PCs = 1, ...){
+runRecombClust <- function(haplos, annot, clusters = 2, PCs = 1, ...){
   # Get models
   models <- runLDmixtureModel(haplos, annot, ...)
 
